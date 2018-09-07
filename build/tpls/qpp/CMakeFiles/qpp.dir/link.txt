@@ -1,1 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/c++   -std=c++11 -fopenmp -pedantic -Wall -Wextra -Weffc++ -O3 -DNDEBUG -DEIGEN_NO_DEBUG -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/qpp.dir/examples/minimal.cpp.o  -o qpp  -L/Users/skillapop/.xacc/lib 
