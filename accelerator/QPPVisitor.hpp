@@ -24,12 +24,14 @@ protected:
 public:
 
         virtual void initialize(std::shared_ptr<AcceleratorBuffer> buffer) {
-          qbitState = ket::Zero(buffer.size());
+          qbitState = ket::Zero(buffer->size());
         }
 
 
         void visit(Hadamard& h) {
           int bit = h.bits()[0];
+          cmat H = gt.H;
+          qbitState = apply(qbitState, H, {1});
 
 
         }
@@ -60,5 +62,6 @@ public:
 
 
 
-}
+};
 }}
+#endif

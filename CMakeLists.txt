@@ -16,7 +16,8 @@ endif()
 
 
 include_directories(${XACC_INCLUDE_DIRS})
-include_directories(/tpls/qpp/include)
+include_directories(${CMAKE_SOURCE_DIR}/tpls/qpp/include/)
+include_directories(${CMAKE_SOURCE_DIR}/accelerator)
 set(EIGEN3_INCLUDE_DIR ${XACC_ROOT}/include/eigen)
 
 link_directories(${XACC_LIBRARY_DIR})
