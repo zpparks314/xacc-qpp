@@ -19,9 +19,11 @@ protected:
 
           int nQubits, nStates;
 
-          std::string measurement;
+          std::string measurement, classicalAddresses;
 
           std::vector<int> measuredQubits;
+
+          std::map<int, int> qubitToClassicalBitIndex;
 
 public:
 
@@ -142,10 +144,15 @@ public:
           // but we'll give it a go
           std::vector<idx> qbits;
           int classicalBitIdx = m.getClassicalBitIndex();
-          for (int i = 0; i < m.bits().size(); i++) {
-            qbits.push_back(m.bits()[i]);
-            measuredQubits.push_back(m.bits()[i]);
-          }
+          qbits.push_back(m.bits()[0]);
+          measuredQubits.push_back(m.bits()[0]);
+          // for (int i = 0; i < m.bits().size(); i++) {
+          //   qbits.push_back(m.bits()[i]);
+          //   measuredQubits.push_back(m.bits()[i]);
+          // }
+          // just putting these because I think I might need them later
+          classicalAddresses += std::to_string(classicalBitIdx);
+          qubitToClassicalBitIndex.insert(std::make_pair(m.bits()[0], classicalBitIdx));
           auto result = measure_seq(qubitState, qbits);
           for (int i = 0; i < std::get<0>(result).size(); i++) {
             measurement += std::to_string(std::get<0>(result)[i]);
@@ -225,6 +232,8 @@ public:
         }
 
         std::string getMeasurementString() { return measurement; }
+
+        std::vector<int> getMeasuredQubits() { return measuredQubits; }
 
         virtual ~QPPVisitor() {}
 };

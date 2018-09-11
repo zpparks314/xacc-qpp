@@ -49,7 +49,7 @@ TEST(QPPVisitorTester, checkMeasurement){
         nextInst->accept(visitor);
   }
   std::string measured = visitor->getMeasurementString();
-  std::cout << "measuredString: " << measured << std::endl;
+  std::cout << "Measured: " << measured << std::endl;
   EXPECT_TRUE(measured == "1");
 }
 
