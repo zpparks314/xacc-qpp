@@ -30,15 +30,15 @@ TEST(QPPVisitorTester, simpleCheck) {
   }
 }
 
-TEST(QPPVisitorTester, checkCZGate){
+TEST(QPPVisitorTester, checkMeasurement){
 
-  auto buffer = std::make_shared<xacc::AcceleratorBuffer>("qreg", 2);
+  auto buffer = std::make_shared<xacc::AcceleratorBuffer>("qreg", 1);
 
   auto f = std::make_shared<GateFunction>("foo");
-  auto cz = std::make_shared<Y>(0);
   auto x = std::make_shared<X>(0);
+  auto meas = std::make_shared<Measure>(0, 1);
   f->addInstruction(x);
-  f->addInstruction(cz);
+  f->addInstruction(meas);
 
   auto visitor = std::make_shared<QPPVisitor>();
   visitor->initialize(buffer);
@@ -48,6 +48,9 @@ TEST(QPPVisitorTester, checkCZGate){
     if (nextInst->isEnabled())
         nextInst->accept(visitor);
   }
+  std::string measured = visitor->getMeasurementString();
+  std::cout << "measuredString: " << measured << std::endl;
+  EXPECT_TRUE(measured == "1");
 }
 
 int main(int argc, char **argv) {
