@@ -1,0 +1,3 @@
+[submodule "qpp"]
+	path = tpls/qpp
+	url = https://github.com/vsoftco/qpp.git
