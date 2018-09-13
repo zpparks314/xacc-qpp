@@ -7,7 +7,7 @@ using namespace xacc::quantum;
 
 TEST(QPPAcceleratorTester, simpleCheck) {
 
-  //auto acc = std::make_shared<QPPAccelerator>();
+  QPPAccelerator acc;
 
 }
 

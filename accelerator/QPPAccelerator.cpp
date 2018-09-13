@@ -44,7 +44,4 @@ void QPPAccelerator::execute(std::shared_ptr<AcceleratorBuffer> buffer, const st
         }
 }
 
-
-
-
 }}

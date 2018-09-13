@@ -14,9 +14,9 @@ class QPPAccelerator : public Accelerator {
 
 public:
 
-  QPPAccelerator() {}
+  // QPPAccelerator() : Accelerator() {}
 
-  virtual void initialize() override { }
+  void initialize() override {}
 
   std::shared_ptr<options_description> getOptions() override {
     auto desc = std::make_shared<options_description>(
@@ -25,42 +25,40 @@ public:
     return desc;
   }
 
-  virtual bool handleOptions(variables_map& map) override { return false; }
+  bool handleOptions(variables_map& map) override { return false; }
 
   std::shared_ptr<AcceleratorBuffer> createBuffer(const std::string& varId) override;
 
   std::shared_ptr<AcceleratorBuffer> createBuffer(const std::string& varId, const int size) override;
 
-  virtual bool isValidBufferSize(const int nbits) override;
+  bool isValidBufferSize(const int nbits) override;
 
-  virtual void execute(std::shared_ptr<AcceleratorBuffer> buffer,
+  void execute(std::shared_ptr<AcceleratorBuffer> buffer,
                 const std::shared_ptr<Function> kernel) override;
 
-  virtual std::vector<std::shared_ptr<AcceleratorBuffer>> execute(
+  std::vector<std::shared_ptr<AcceleratorBuffer>> execute(
                 std::shared_ptr<AcceleratorBuffer> buffer,
                 const std::vector<std::shared_ptr<Function>> functions) override;
 
-  virtual AcceleratorType getType() override { return AcceleratorType::qpu_gate; }
+  AcceleratorType getType() override { return AcceleratorType::qpu_gate; }
 
-  virtual const std::string name() const override {
+  const std::string name() const override {
     return "qpp";
   }
 
-  virtual const std::string description() const override {
+  const std::string description() const override {
     return "The QPP Accelerator allows for interacting with the Quantum++ simulator library "
               "to launch XACC quantum kernels.";
   }
 
-  virtual std::vector<std::shared_ptr<xacc::IRTransformation>> getIRTransformations() override {
+  std::vector<std::shared_ptr<xacc::IRTransformation>> getIRTransformations() override {
     std::vector<std::shared_ptr<xacc::IRTransformation>> v;
     return v;
   }
 
-  virtual ~QPPAccelerator() { }
+  ~QPPAccelerator() {}
 
 };
-
-
 }}
 
 

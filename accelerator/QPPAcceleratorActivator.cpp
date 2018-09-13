@@ -18,7 +18,7 @@ public:
           context.RegisterService<xacc::Accelerator>(acc);
           context.RegisterService<xacc::BaseInstructionVisitor>(vis);
         }
-        
+
         void Stop(BundleContext context) {}
 };
 
