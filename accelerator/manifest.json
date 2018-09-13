@@ -1,6 +1,6 @@
 {
   "bundle.symbolic_name" : "xacc_qpp_accelerator",
   "bundle.activator" : true,
-  "bundle.name" : "XACC QPP accelerator", 
+  "bundle.name" : "XACC QPP accelerator",
   "bundle.description" : "This bundle provides an Accelerator targeting the Quantum++ simulator library."
 }

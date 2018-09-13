@@ -1,20 +1,15 @@
 #include "cppmicroservices/BundleActivator.h"
 #include "cppmicroservices/BundleContext.h"
 #include "cppmicroservices/ServiceProperties.h"
-
+#include "XACC.hpp"
 #include "QPPAccelerator.hpp"
 
 using namespace cppmicroservices;
 
-namespace {
-
 class US_ABI_LOCAL QPPAcceleratorActivator : public BundleActivator {
 
 public:
-
-        QPPAcceleratorActivator() { }
-
-
+        QPPAcceleratorActivator() {}
         void Start(BundleContext context) {
           auto acc = std::make_shared<xacc::quantum::QPPAccelerator>();
           auto vis = std::make_shared<xacc::quantum::QPPVisitor>();
@@ -22,12 +17,9 @@ public:
           context.RegisterService<xacc::OptionsProvider>(acc);
           context.RegisterService<xacc::Accelerator>(acc);
           context.RegisterService<xacc::BaseInstructionVisitor>(vis);
-
         }
-
-        void Stop(BundleContext context) { }
+        
+        void Stop(BundleContext context) {}
 };
-
-}
 
 CPPMICROSERVICES_EXPORT_BUNDLE_ACTIVATOR(QPPAcceleratorActivator)

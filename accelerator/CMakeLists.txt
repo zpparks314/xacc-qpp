@@ -25,9 +25,9 @@ set_target_properties(${LIBRARY_NAME} PROPERTIES
 # Embed meta-data from a manifest.json file
 usFunctionEmbedResources(TARGET ${LIBRARY_NAME}
   WORKING_DIRECTORY
-    ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}
   FILES
-    manifest.json
+  manifest.json
 )
 
 if(APPLE)
