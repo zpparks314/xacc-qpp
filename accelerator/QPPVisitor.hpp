@@ -17,7 +17,7 @@ protected:
 
           ket qubitState;
 
-          int nQubits, nStates;
+          int nQubits, nStates, qpp_shots;
 
           std::string measurement, classicalAddresses;
 
@@ -25,49 +25,69 @@ protected:
 
           std::map<int, int> qubitToClassicalBitIndex;
 
+          std::shared_ptr<AcceleratorBuffer> accBuffer;
+
+
 public:
 
         QPPVisitor() {}
 
+        double ipToDouble(xacc::InstructionParameter p) {
+          if (p.which() == 0) {
+            return (double)boost::get<int>(p);
+          } else if (p.which() == 1) {
+            return boost::get<double>(p);
+          } else if (p.which() == 2) {
+            return (double)boost::get<float>(p);
+          } else {
+            std::stringstream s;
+            s << p;
+            xacc::error("QPPVisitor: Invalid gate parameter " +
+                  std::to_string(p.which()) + ", " + s.str());
+                }
+                return 0.0;
+        }
+
         void initialize(std::shared_ptr<AcceleratorBuffer> buffer) {
-          nQubits = buffer->size();
+          try {
+            qpp_shots = std::stoi(xacc::getOption("qpp-shots"));
+          }
+          catch(...) {
+            std::cout << "QPPVisitor: Invalid number of shots to execute." << std::endl;
+          }
+          accBuffer = buffer;
+          nQubits = accBuffer->size();
           qubitState = st.z0;
           for (int i = 0; i < nQubits - 1; i++) {
             // Generate qubitState ket
             qubitState = kron(qubitState, st.z0);
           }
           // checking
-          std::cout << "qubitState: \n" << disp(qubitState) << std::endl;
+          // std::cout << "initial qubitState: \n" << disp(qubitState) << std::endl;
         }
 
         void visit(Hadamard &h) {
-          // not sure if these bit loops are necessary
-          // but I'm gonna keep them for sake of consistency
           std::vector<idx> qbits;
-          for (int i = 0; i < h.bits().size(); i++){
-            qbits.push_back(h.bits()[i]);
-          }
+          qbits.push_back(h.bits()[0]);
           // translate the XACC IR to QPP type
           cmat had = gt.H;
           // apply the gate to the corresponding qubit on the state vector
           qubitState = apply(qubitState, had, qbits);
           // checking..
-          std::cout << "Hadamard applied on:\n" << qbits[0] << std::endl;
-          std::cout << disp(qubitState) << std::endl;
+          // std::cout << "Hadamard applied on:" << qbits[0] << std::endl;
+          // std::cout << disp(qubitState) << std::endl;
         }
 
         void visit(Identity &i) {
           std::vector<idx> qbits;
-          for (int j = 0; j < i.bits().size(); j++){
-            qbits.push_back(i.bits()[j]);
-          }
+          qbits.push_back(i.bits()[0]);
           // translate
           cmat id = gt.Id();
           // apply the gate
           qubitState = apply(qubitState, id, qbits);
           // checking
-          std::cout << "Identity applied on:\n" << qbits[0] << std::endl;
-          std::cout << disp(qubitState) << std::endl;
+          // std::cout << "Identity applied on:" << qbits[0] << std::endl;
+          // std::cout << disp(qubitState) << std::endl;
         }
 
         void visit(CZ& cz) {
@@ -80,8 +100,8 @@ public:
           // apply the gate
           qubitState = apply(qubitState, CZ, qbits);
           // checking...
-          std::cout << "CZ applied on:\n" << qbits << std::endl;
-          std::cout << disp(qubitState) << std::endl;
+          // std::cout << "CZ applied on:" << qbits << std::endl;
+          // std::cout << disp(qubitState) << std::endl;
         }
 
         void visit(CNOT& cn) {
@@ -94,49 +114,44 @@ public:
           // apply the gate
           qubitState = apply(qubitState, ncn, qbits);
 
-          std::cout << "CNOT applied on:\n" << qbits << std::endl;
-          std::cout << disp(qubitState) << std::endl;
+          // std::cout << "CNOT applied on:" << qbits << std::endl;
+          // std::cout << disp(qubitState) << std::endl;
 
         }
 
         void visit(X &x) {
           std::vector<idx> qbits;
-          for (int i = 0; i < x.bits().size(); i++) {
-            qbits.push_back(x.bits()[i]);
-          }
+          qbits.push_back(x.bits()[0]);
           // translate
           cmat nx = gt.X;
           // apply that bad boy
           qubitState = apply(qubitState, nx, qbits);
 
-          std::cout << "X applied on:\n" << qbits << std::endl;
-          std::cout << disp(qubitState) << std::endl;
+          // std::cout << "X applied on:" << qbits << std::endl;
+          // std::cout << disp(qubitState) << std::endl;
         }
 
         void visit(Y &y) {
           std::vector<idx> qbits;
-          for (int i = 0; i < y.bits().size(); i++) {
-            qbits.push_back(y.bits()[i]);
-          }
+          qbits.push_back(y.bits()[0]);
+
           cmat ny = gt.Y;
 
           qubitState = apply(qubitState, ny, qbits);
 
-          std::cout << "Y applied on:\n" << qbits << std::endl;
-          std::cout << disp(qubitState) << std::endl;
+          // std::cout << "Y applied on:" << qbits << std::endl;
+          // std::cout << disp(qubitState) << std::endl;
         }
 
         void visit(Z& z) {
           std::vector<idx> qbits;
-          for (int i = 0; i < z.bits().size(); i++) {
-            qbits.push_back(z.bits()[i]);
-          }
+          qbits.push_back(z.bits()[0]);
           cmat nz = gt.Z;
 
           qubitState = apply(qubitState, nz, qbits);
 
-          std::cout << "Z applied on:\n" << qbits << std::endl;
-          std::cout << disp(qubitState) << std::endl;
+          // std::cout << "Z applied on:" << qbits << std::endl;
+          // std::cout << disp(qubitState) << std::endl;
         }
 
         void visit(Measure& m) {
@@ -146,19 +161,20 @@ public:
           int classicalBitIdx = m.getClassicalBitIndex();
           qbits.push_back(m.bits()[0]);
           measuredQubits.push_back(m.bits()[0]);
-          // for (int i = 0; i < m.bits().size(); i++) {
-          //   qbits.push_back(m.bits()[i]);
-          //   measuredQubits.push_back(m.bits()[i]);
-          // }
           // just putting these because I think I might need them later
           classicalAddresses += std::to_string(classicalBitIdx);
           qubitToClassicalBitIndex.insert(std::make_pair(m.bits()[0], classicalBitIdx));
-          auto result = measure_seq(qubitState, qbits);
-          for (int i = 0; i < std::get<0>(result).size(); i++) {
-            measurement += std::to_string(std::get<0>(result)[i]);
+
+          for (int i = 0; i < qpp_shots; i++) {
+            auto result = measure(qubitState, gt.Z, qbits);
+            accBuffer->appendMeasurement(std::to_string(std::get<0>(result)));
           }
-          std::cout << "Measure applied on:\n" << qbits << "\nclassical: " << classicalBitIdx << std::endl;
-          std::cout << disp(qubitState) << std::endl;
+
+          // measurement += std::to_string(std::get<0>(result));
+          //
+          // accBuffer->appendMeasurement(std::to_string(std::get<0>(result)));
+          // std::cout << "Measure applied on:" << qbits << "\nclassical: " << classicalBitIdx << std::endl;
+          // std::cout << disp(qubitState) << std::endl;
         }
 
         void visit(ConditionalFunction& c) {
@@ -166,50 +182,57 @@ public:
         }
 
         void visit(Rx& rx) {
-          auto param = boost::get<double>(rx.getParameter(0));
+          auto param = ipToDouble(rx.getParameter(0));
           std::vector<idx> qbits;
-          for (int i = 0; i < rx.bits().size(); i++) {
-            qbits.push_back(rx.bits()[i]);
-          }
+          qbits.push_back(rx.bits()[0]);
+
           cmat nrx = gt.Rn(param, {1, 0, 0});
 
           qubitState = apply(qubitState, nrx, qbits);
 
-          std::cout << "Rx applied on:\n" << qbits << "with parameter: " << param << std::endl;
-          std::cout << disp(qubitState) << std::endl;
+          // std::cout << "Rx applied on:" << qbits << "with parameter: " << param << std::endl;
+          // std::cout << disp(qubitState) << std::endl;
 
         }
 
         void visit(Ry& ry) {
-          auto param = boost::get<double>(ry.getParameter(0));
+          auto param = ipToDouble(ry.getParameter(0));
           std::vector<idx> qbits;
-          for (int i = 0; i < ry.bits().size(); i++) {
-            qbits.push_back(ry.bits()[i]);
-          }
+          qbits.push_back(ry.bits()[0]);
+
           cmat nry = gt.Rn(param, {0, 1, 0});
 
           qubitState = apply(qubitState, nry, qbits);
 
-          std::cout << "Ry applied on:\n" << qbits << "with parameter: " << param << std::endl;
-          std::cout << disp(qubitState) << std::endl;
+          // std::cout << "Ry applied on:" << qbits << "with parameter: " << param << std::endl;
+          // std::cout << disp(qubitState) << std::endl;
         }
 
         void visit(Rz& rz) {
-          auto param = boost::get<double>(rz.getParameter(0));
+          auto param = ipToDouble(rz.getParameter(0));
           std::vector<idx> qbits;
-          for (int i = 0; i < rz.bits().size(); i++) {
-            qbits.push_back(rz.bits()[i]);
-          }
+          qbits.push_back(rz.bits()[0]);
           cmat nrz = gt.Rn(param, {0, 0, 1});
 
           qubitState = apply(qubitState, nrz, qbits);
 
-          std::cout << "Rz applied on:\n" << qbits << "with parameter: " << param << std::endl;
-          std::cout << disp(qubitState) << std::endl;
+          // std::cout << "Rz applied on:" << qbits << "with parameter: " << param << std::endl;
+          // std::cout << disp(qubitState) << std::endl;
         }
 
         void visit(CPhase& cp) {
-          // not sure what to use here - CZ is controlled-phase in QPP
+          auto param = ipToDouble(cp.getParameter(0));
+          std::vector<idx> qbits;
+          for (int i = 0; i < cp.bits().size(); i++) {
+            qbits.push_back(cp.bits()[i]);
+          }
+          cmat ncp(2, 2);
+          ncp << 1, 0, 0, exp(param);
+          qubitState = applyCTRL(qubitState, ncp, {qbits[0]}, {qbits[1]});
+
+          // std::cout << "CPhase applied on:" << qbits << "with parameter: " << param << std::endl;
+          // std::cout << disp(qubitState) << std::endl;
+
         }
 
         void visit(Swap& s) {
@@ -221,8 +244,8 @@ public:
 
           qubitState = apply(qubitState, ns, qbits);
 
-          std::cout << "SWAP applied on:\n" << qbits << std::endl;
-          std::cout << disp(qubitState) << std::endl;
+          // std::cout << "SWAP applied on:" << qbits << std::endl;
+          // std::cout << disp(qubitState) << std::endl;
         }
 
         void visit(GateFunction& gf) { return; }

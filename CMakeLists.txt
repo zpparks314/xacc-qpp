@@ -9,10 +9,18 @@ option(QPP_BUILD_TESTS "Build test programs" ON)
 
 find_package(XACC REQUIRED)
 
+# Make sure all build libraries have reference to their dependents
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set (CMAKE_INSTALL_PREFIX "${XACC_ROOT}" CACHE PATH "default install path" FORCE )
 endif()
+
+set(CppMicroServicesConfig_DIR ${XACC_ROOT}/share/cppmicroservices4/cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${XACC_ROOT}/share/xacc")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CppMicroServicesConfig_DIR}")
+include(CppMicroServicesConfig)
 
 
 include_directories(${XACC_INCLUDE_DIRS})
