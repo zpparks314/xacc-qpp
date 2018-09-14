@@ -169,10 +169,6 @@ public:
             auto result = measure(qubitState, gt.Z, qbits);
             accBuffer->appendMeasurement(std::to_string(std::get<0>(result)));
           }
-
-          // measurement += std::to_string(std::get<0>(result));
-          //
-          // accBuffer->appendMeasurement(std::to_string(std::get<0>(result)));
           // std::cout << "Measure applied on:" << qbits << "\nclassical: " << classicalBitIdx << std::endl;
           // std::cout << disp(qubitState) << std::endl;
         }

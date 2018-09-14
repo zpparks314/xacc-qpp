@@ -35,7 +35,7 @@ std::vector<std::shared_ptr<AcceleratorBuffer>> QPPAccelerator::execute(
 void QPPAccelerator::execute(std::shared_ptr<AcceleratorBuffer> buffer, const std::shared_ptr<Function> kernel) {
 
         auto visitor = std::make_shared<QPPVisitor>();
-
+        visitor->initialize(buffer);
         InstructionIterator it(kernel);
         while (it.hasNext()) {
               auto nextInst = it.next();
