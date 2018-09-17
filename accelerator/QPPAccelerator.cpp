@@ -42,6 +42,7 @@ void QPPAccelerator::execute(std::shared_ptr<AcceleratorBuffer> buffer, const st
               if (nextInst->isEnabled())
                   nextInst->accept(visitor);
         }
+        visitor->finalize();
 }
 
 }}

@@ -25,6 +25,8 @@ protected:
 
           std::map<int, int> qubitToClassicalBitIndex;
 
+          std::map<int, std::string> measurementMap;
+
           std::shared_ptr<AcceleratorBuffer> accBuffer;
 
 
@@ -51,14 +53,23 @@ public:
         void initialize(std::shared_ptr<AcceleratorBuffer> buffer) {
           try {
             qpp_shots = std::stoi(xacc::getOption("qpp-shots"));
+            xacc::info("Using the QPPAccelerator with " + std::to_string(qpp_shots) + " measurement shots.");
           }
           catch(...) {
             std::cout << "QPPVisitor: Invalid number of shots to execute." << std::endl;
           }
           accBuffer = buffer;
           nQubits = accBuffer->size();
+          for (int i = 0; i < qpp_shots; i++){
+            std::string bitString = "";
+            for (int j = 0; j < nQubits; j++){
+              bitString += "0";
+            }
+            measurementMap[i] = bitString;
+          }
+          std::cout << "PRINT MAPPED STUFF: " << measurementMap[2] << std::endl;
           qubitState = st.z0;
-          for (int i = 0; i < nQubits - 1; i++) {
+          for (int i = 0; i < nQubits-1; i++) {
             // Generate qubitState ket
             qubitState = kron(qubitState, st.z0);
           }
@@ -114,8 +125,8 @@ public:
           // apply the gate
           qubitState = apply(qubitState, ncn, qbits);
 
-          // std::cout << "CNOT applied on:" << qbits << std::endl;
-          // std::cout << disp(qubitState) << std::endl;
+          std::cout << "CNOT applied on:" << qbits << std::endl;
+          std::cout << disp(qubitState) << std::endl;
 
         }
 
@@ -127,8 +138,8 @@ public:
           // apply that bad boy
           qubitState = apply(qubitState, nx, qbits);
 
-          // std::cout << "X applied on:" << qbits << std::endl;
-          // std::cout << disp(qubitState) << std::endl;
+          std::cout << "X applied on:" << qbits << std::endl;
+          std::cout << disp(qubitState) << std::endl;
         }
 
         void visit(Y &y) {
@@ -164,10 +175,17 @@ public:
           // just putting these because I think I might need them later
           classicalAddresses += std::to_string(classicalBitIdx);
           qubitToClassicalBitIndex.insert(std::make_pair(m.bits()[0], classicalBitIdx));
-
           for (int i = 0; i < qpp_shots; i++) {
             auto result = measure(qubitState, gt.Z, qbits);
-            accBuffer->appendMeasurement(std::to_string(std::get<0>(result)));
+            int index = nQubits - 1 - m.bits()[0];
+            // std::cout << "Result[0]: " << std::get<0>(result) << std::endl;
+            // std::string bitString = measurementMap[i];
+            // std::cout << "MeasurementMap[i]: " << measurementMap[i] << std::endl;
+            measurementMap[i][index] = std::to_string(std::get<0>(result)).c_str()[0];
+            // bitString[index] = (char)std::get<0>(result);
+            // measurementMap[i] = bitString;
+            // measurementMap[i].replace(index, 1, std::to_string(std::get<0>(result)));
+            // std::cout << "MeasurementMap[i] (replaced): " << measurementMap[i] << std::endl;
           }
           // std::cout << "Measure applied on:" << qbits << "\nclassical: " << classicalBitIdx << std::endl;
           // std::cout << disp(qubitState) << std::endl;
@@ -195,13 +213,13 @@ public:
           auto param = ipToDouble(ry.getParameter(0));
           std::vector<idx> qbits;
           qbits.push_back(ry.bits()[0]);
-
+          std::cout << "Rotation around qubit: " << qbits << std::endl;
           cmat nry = gt.Rn(param, {0, 1, 0});
 
           qubitState = apply(qubitState, nry, qbits);
 
-          // std::cout << "Ry applied on:" << qbits << "with parameter: " << param << std::endl;
-          // std::cout << disp(qubitState) << std::endl;
+          std::cout << "Ry applied on:" << qbits << "with parameter: " << param << std::endl;
+          std::cout << disp(qubitState) << std::endl;
         }
 
         void visit(Rz& rz) {
@@ -245,6 +263,12 @@ public:
         }
 
         void visit(GateFunction& gf) { return; }
+
+        void finalize() {
+          for (auto const& kv : measurementMap){
+            accBuffer->appendMeasurement(kv.second);
+          }
+        }
 
         qpp::ket getState() {
           return qubitState;
