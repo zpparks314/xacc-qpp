@@ -30,22 +30,26 @@ TEST(QPPAcceleratorTester, checkGate) {
   auto acc = std::make_shared<QPPAccelerator>();
   std::shared_ptr<AcceleratorBuffer> buffer = acc->createBuffer("qreg", 2);
 
+
   auto f = std::make_shared<GateFunction>("foo");
   auto x = std::make_shared<X>(0);
-  double theta = 0.07321341;
+  double theta = 1.95678;
   auto ry = std::make_shared<Ry>(1, theta);
   auto cn = std::make_shared<CNOT>(1, 0);
-  auto measure = std::make_shared<Measure>(1, 0);
+  auto measure = std::make_shared<Measure>(0, 0);
 
   f->addInstruction(x);
   f->addInstruction(ry);
   f->addInstruction(cn);
   f->addInstruction(measure);
   std::cout << "Ansatz:\n" << f->toString("qreg") << std::endl;
-
-  acc->execute(buffer, f);
-
-  std::cout << "Measured Expectation Value: " << buffer->getExpectationValueZ() << std::endl;
+  for (int i = 0; i < 20; i++){
+    acc->execute(buffer, f);
+    std::cout << theta << ", " << buffer->getExpectationValueZ() << std::endl;
+  }
+  // acc->execute(buffer, f);
+  //
+  // std::cout << "Measured Expectation Value: " << buffer->getExpectationValueZ() << std::endl;
   auto map = buffer->getMeasurementCounts();
   for (auto& kv : map) {
     std::cout << kv.first << ":" << kv.second << "\n";
@@ -57,12 +61,12 @@ TEST(QPPAcceleratorTester, littleTest) {
   std::shared_ptr<AcceleratorBuffer> buffer = acc->createBuffer("qreg", 2);
 
   auto f = std::make_shared<GateFunction>("foo");
-  auto h = std::make_shared<Hadamard>(0);
+  auto x = std::make_shared<X>(0);
   auto h2 = std::make_shared<Hadamard>(1);
   auto meas = std::make_shared<Measure>(0, 0);
   auto meas2 = std::make_shared<Measure>(1, 1);
 
-  f->addInstruction(h);
+  f->addInstruction(x);
   f->addInstruction(h2);
   f->addInstruction(meas);
   f->addInstruction(meas2);
